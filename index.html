@@ -73,6 +73,60 @@
             visibility: visible !important;
             opacity: 1 !important;
         }
+
+        /* Custom AR Button */
+        .custom-ar-button {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            padding: 15px 25px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+            z-index: 1000;
+        }
+
+        .custom-ar-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .custom-ar-button:active {
+            transform: translateY(0);
+        }
+
+        /* Fallback AR Button - Always visible */
+        .fallback-ar-button {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            padding: 15px 25px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
+            z-index: 1001;
+        }
+
+        .fallback-ar-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 107, 107, 0.4);
+        }
+
+        .fallback-ar-button:active {
+            transform: translateY(0);
+        }
     </style>
 </head>
 <body>
@@ -106,11 +160,21 @@
         min-field-of-view="10deg"
         max-field-of-view="45deg"
     >
+        <!-- Custom AR Button -->
+        <button slot="ar-button" class="custom-ar-button">
+            👋 View in AR
+        </button>
+
         <!-- AR Tracking Prompt -->
         <div class="ar-tracking-prompt">
             📱 Move your phone around to help AR find the floor
         </div>
     </model-viewer>
+
+    <!-- Fallback AR Button - Always visible -->
+    <button id="fallbackArButton" class="fallback-ar-button" style="display: none;">
+        🚀 Launch AR
+    </button>
 
     <script>
         // Get GLB URL from URL parameters
@@ -129,6 +193,7 @@
         // Initialize model viewer
         document.addEventListener('DOMContentLoaded', () => {
             const modelViewer = document.getElementById('modelViewer');
+            const fallbackArButton = document.getElementById('fallbackArButton');
             const glbUrl = getGLBUrlFromParams();
 
             console.log('Loading model from URL:', glbUrl);
@@ -138,6 +203,12 @@
             modelViewer.addEventListener('load', () => {
                 console.log('Model loaded successfully');
                 console.log('AR capabilities:', modelViewer.canActivateAR);
+
+                // Show fallback AR button if AR is supported
+                if (modelViewer.canActivateAR) {
+                    fallbackArButton.style.display = 'block';
+                    console.log('AR is supported - showing fallback button');
+                }
             });
 
             modelViewer.addEventListener('error', (e) => {
@@ -147,9 +218,10 @@
             modelViewer.addEventListener('ar-status', (e) => {
                 console.log('AR Status:', e.detail);
 
-                // Force show AR button if AR is supported
+                // Show fallback button when AR is not presenting but supported
                 if (e.detail === 'not-presenting' && modelViewer.canActivateAR) {
-                    console.log('AR is supported, button should be visible');
+                    fallbackArButton.style.display = 'block';
+                    console.log('AR is supported, showing fallback button');
                 }
             });
 
@@ -157,6 +229,21 @@
             modelViewer.addEventListener('model-visibility', () => {
                 console.log('AR Support:', modelViewer.canActivateAR);
                 console.log('AR Modes:', modelViewer.arModes);
+
+                if (modelViewer.canActivateAR) {
+                    fallbackArButton.style.display = 'block';
+                }
+            });
+
+            // Fallback AR button click handler
+            fallbackArButton.addEventListener('click', async () => {
+                try {
+                    console.log('Attempting to activate AR...');
+                    await modelViewer.activateAR();
+                } catch (error) {
+                    console.error('AR activation failed:', error);
+                    alert('AR is not available on this device or browser. Please try on a mobile device with AR support.');
+                }
             });
         });
 
