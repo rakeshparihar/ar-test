@@ -171,6 +171,24 @@
             modelViewer.addEventListener('load', () => {
                 console.log('Model loaded successfully');
                 console.log('AR capabilities:', modelViewer.canActivateAR);
+
+                // Auto-click AR button after 1 second if AR is supported
+                if (modelViewer.canActivateAR) {
+                    setTimeout(async () => {
+                        try {
+                            console.log('Auto-activating AR...');
+                            await modelViewer.activateAR();
+                        } catch (error) {
+                            console.log('Auto AR activation failed:', error);
+                            // Try clicking the AR button if activateAR() fails
+                            const arButton = modelViewer.querySelector('[slot="ar-button"]');
+                            if (arButton) {
+                                console.log('Trying to click AR button...');
+                                arButton.click();
+                            }
+                        }
+                    }, 1000);
+                }
             });
 
             modelViewer.addEventListener('error', (e) => {
